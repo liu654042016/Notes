@@ -11,12 +11,13 @@
 
 # Common
 
-
 ## [tar](https://blog.csdn.net/example440982/article/details/51712973)
 
 tar -cvf test.tar test  #仅打包，不压缩
 tar -zcvf test.tar.gz test  #打包后，以gzip压缩 在参数f后面的压缩文件名是自己取的，习惯上用tar来做，如果加z参数，则以tar.gz 或tgz来代表gzip压缩过的tar file文件
 tar -zcvf dist.tar.gz -C dist .  #注意最后有一点，通过 -C 参数指定目录，可以去掉打包内容包含相对目录，打包内容只包含 dist/* 下的文件内容，不包含 dist 目录
+
+tar -zxvf 解压文件到当前文件夹
 
 ---
 
@@ -54,5 +55,33 @@ du -h test 方便阅读的格式显示test目录所占空间情况
 -h：以K，M，G为单位，提高信息的可读性。
 
 ```
+
+---
+
+
+
+## [find](https://www.runoob.com/linux/linux-comm-find.html)
+
+find 命令用于在指定目录下查找文件和目录
+
+find [path][expression]
+
+```
+参数说明 :
+
+path 是要查找的目录路径，可以是一个目录或文件名，也可以是多个路径，多个路径之间用空格分隔，如果未指定路径，则默认为当前目录。
+
+expression 是可选参数，用于指定查找的条件，可以是文件名、文件类型、文件大小等等。
+
+expression 中可使用的选项有二三十个之多，以下列出最常用的部份：
+
+-name pattern：按文件名查找，支持使用通配符 * 和 ?。
+-type type：按文件类型查找，可以是 f（普通文件）、d（目录）、l（符号链接）等。
+-size [+-]size[cwbkMG]：按文件大小查找，支持使用 + 或 - 表示大于或小于指定大小，单位可以是 c（字节）、w（字数）、b（块数）、k（KB）、M（MB）或 G（GB）。
+```
+
+e.g
+
+find dir -name  " " |  xargs rm  #查找并删除指定名字文件
 
 ---
