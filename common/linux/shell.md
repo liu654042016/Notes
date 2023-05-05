@@ -58,8 +58,6 @@ du -h test 方便阅读的格式显示test目录所占空间情况
 
 ---
 
-
-
 ## [find](https://www.runoob.com/linux/linux-comm-find.html)
 
 find 命令用于在指定目录下查找文件和目录
@@ -83,5 +81,37 @@ expression 中可使用的选项有二三十个之多，以下列出最常用的
 e.g
 
 find dir -name  " " |  xargs rm  #查找并删除指定名字文件
+
+## [ps](https://www.yiibai.com/linux/ps.html)
+
+```
+a  显示所有进程
+-a 显示同一终端下的所有程序
+-A 显示所有进程
+c  显示进程的真实名称
+-N 反向选择
+-e 等于“-A”
+e  显示环境变量
+f  显示程序间的关系
+-H 显示树状结构
+r  显示当前终端的进程
+T  显示当前终端的所有程序
+u  指定用户的所有进程
+-au 显示较详细的资讯
+-aux 显示所有包含其他使用者的行程
+ -C<命令> 列出指定命令的状况
+--lines<行数> 每页显示的行数
+--width<字符数> 每页显示的字符数
+--help 显示帮助信息-
+-version 显示版本显示
+
+```
+
+e.g.1
+
+ps -ef # 显示所有进程信息，连同命令行
+
+ps -ef|grep ssh #ps 与grep 常用组合用法，查找特定进程
+
 
 ---
