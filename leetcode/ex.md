@@ -97,3 +97,78 @@ void selection_sort(vector<int> &num, int n){
     }
 }
 ```
+
+
+215 kth largest element in an array
+```cpp
+int findKthLargest(vector<int>& nums, int k){
+    int l =0; r=nums.size()-1, target = nums.size()-k;
+    while(l<r){
+        int mid = quickSelection(nums, l, r);
+        if(mid == target){
+            return nums[mid];
+        }
+        if (mid < target){
+            l = mid + 1;
+        }else{
+            r = mid -1;
+        }
+    }
+    return nums[l];
+}
+// 
+int quickSelection(vector<int>& nums, int l, int r){
+    int i = l + 1, j =r ;
+    while(true){
+        while (i<r && nums[i] <= nums[l]){
+            ++i;
+        }
+        while (l < j && nums[j]> nums[l]){
+            --j;
+        }
+        if(i >= j){
+            break;
+        }
+        swap(nums[i], nums[j]);
+        return j;
+    }
+}
+
+```
+
+```cpp
+vector<int> topKFrequent(vector<int>& nums, int k){
+    unordered_map<int, int> counts;
+    int max_count = 0;
+    for (const int & num : nums){
+        max_count = max(max_count, ++counts[num]);
+    }
+
+    vector<vector<int>> buckets(max_count + 1);
+    for (const auto & p : counts){
+        buckets[p.second].push_back(p.first);
+    }
+
+    vector<int> ans;
+    for (int i = max_count; i > = 0 && ans.size() < k ; --i){
+        for (const int & num : buckets[i]){
+            ans.push_back(num);
+            if (ans.size() == k){
+                break;
+            }
+        }
+    }
+    return ans;
+}
+```
+
+
+
+
+```cpp
+
+
+```
+
+
+
