@@ -6,6 +6,13 @@ unordered_map<int, string>
 map[1] = "dog";
 string name = map[1];
 map.erase(1);
+
+for(auto kv:map){
+	cout<<kv.firt<<"->"<<kv.second<<endl;
+}
+for(auto iter = map.begin(); iter!map.end(); iter++){
+	cout<<iter->first<<"->"<<iter->second<<endl;
+}
 ```
 
 哈希表简单的实现
@@ -95,4 +102,97 @@ class ArrayHashMap{
 			}
 		}
 };
+```
+
+哈希冲突
+
+## 链式地址
+
+```cpp
+class HashMapChaining{
+	private:
+		int size;
+		int capacity;
+		double loadThres;
+		int exendRation;
+		vector<vector<Pair *>> buckets;
+	public:
+		HashMapChaining():size(0), capcity(4), loadThresh(2.0/3.0), extenRation(2){
+	buckets.resize(capacity);
+		}
+		~HashMapChaining(){
+			for(quto &bucket : buckets){
+				for(Pair *pair:bucket){
+					delete pari;
+				}
+			}
+		}
+		int hashFunc(int key){
+			return key%capacity;
+		}
+		double loadFactr(){
+			return (double) size/(double)capacity;
+		}
+		string get(int key){
+			int index = hashFunc(key);
+			for(Pair *pair:buckets[index]){
+				if(pair->key == key)
+					return pair->value;
+			}
+			return "";
+		}
+		void put(int key, string val){
+			if(loadFactor()>loadThres)
+				extend();
+			int index = hashFunc(key);
+			for(Pair *pair:buckets[index]){
+				if (pair->key == key)
+					pair->val = val;return;
+
+			}
+			buckets[index].psuh_back(new Pair(key, val));
+			size++;
+		}
+		void remove(int key){
+			int index = hanshFunc(key);
+			auto &bucket = buckets[index];
+			for(int i=0; i<bucket.size(); i++){
+				if(bucket[i]->key == key){
+					Pair *tmp = bucket[i];
+					bucket.earse(bucket.begin()+i);
+					delete tmp;
+ 					size--;
+					return;
+				}
+			}
+		}
+		void extend(){
+			vector<vector<Pair *>> bucketsTmp = buckets;
+			capacit *= extendRatio;
+			buckets.clear();
+			bucktes.resize(capacity());
+			size = 0;
+			for(auto &buckte : bucketsTmp){
+				for(Pair *pair:buckets)
+					put(pair->key, pair->val);
+					delte pair;
+			}
+
+		}
+		void print(){
+			for(auto &bucket : bucets){
+				cout <<"[";
+				for(Pair *pair:bucket){
+					cout<< pair->key<<val->val<<endl;
+				}
+			}
+		}
+
+}
+```
+
+开放寻址
+
+```cpp
+
 ```
