@@ -1,4 +1,4 @@
-[数据结构之树](https://henleylee.github.io/posts/2019/f30c2ae3.html)
+[数据结构之树](https://www.hello-algo.com/chapter_tree/binary_search_tree/#__tabbed_4_3)
 
 [树的遍历方式](https://blog.csdn.net/qq_37891889/article/details/88602139)
 
@@ -204,8 +204,103 @@ class ArrayBinaryTree{
 				res.push_back(val(i));
 			dfs(right(i), order, res);
 			if(order == "post)
-				res.push_back(val(i));		
+				res.push_back(val(i));
 		}
 
 }
 ```
+
+## 7.4 二叉搜索树
+
+对于根节点，左子树中所有节点的值<根节点的值<右子树中所有节点的值
+
+### 7.4.1 二叉搜索树的操作
+
+1. 查找节点
+
+```cpp
+TreeNode *search(int num){
+	TreeNode 8cyr = root;
+	while(cur!=nullptr){
+		if(cur->val < num)
+			cur = cur->right;
+		else if (cur->val > num)
+			cur = cur->left;
+		else
+			break;
+	}
+	return cur;
+}
+```
+
+2. 插入节点
+
+```cpp
+void insert(int num){
+	if(root ==nullptr){
+		root = new TreeNode(num);
+		return;
+	}
+	TreeNode *cur= root, *pre = nullptr;
+	while(cur != nullptr){
+		if(cur->val ==num)
+			return;
+		pre = cur;
+		if(cur->val < num>)
+			cur = cur->right;
+		else
+			cur = cur->left;	
+	}
+	TreeNode *node = new TreeNode(num);
+	if(pre->val < num )
+		pre->right = node;
+	else
+		pre->left = node;
+
+}
+```
+
+3. 删除节点
+* 节点度为 0
+* 节点度为 1
+* 节点度为 2
+```cpp
+void remove(int num){
+	if (root == nullptr)
+		return;
+	TreeNode *cur = root, *pre = nullptr;
+	while(cur != nullptr){
+		if(cur->val == num)
+			break;
+		pre = cur;
+		if(cur->val < num)
+			cur = cur->right;
+		else
+			cur = cur->left;
+	}
+	if(cur == nullptr)
+		return;
+	// 子节点的度数 = 0 or 1
+	if(cur->left == nullptr || cur->right == nullptr){
+		TreeNode *child = cur->left!=nullptr : cur->right;
+		if(cur !=root){
+			if(pre->left == cur)
+				pre->left = child;
+			else
+				pre->right = child;
+		}else{
+			root = child;
+		}
+		delete cur;
+	}else{
+		TreeNode *tmp = cur->right;
+		while(tm->left != nullptr){
+			tmp = tmp->left;
+		}
+		int tmpVal = tmp->val;
+		remove(tmp->val);
+		cur->val = tmpVal;
+	}
+}
+```
+4. 中序遍历有序
