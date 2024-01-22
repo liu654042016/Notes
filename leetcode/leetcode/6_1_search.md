@@ -1,9 +1,14 @@
-#  第6章  一切皆可搜索
+# 第6章  一切皆可搜索
+
 ## 6.1 算法解释
+
 * 深度优先搜索
 * 广度优先搜索
+
 ## 6.2 深度优先搜索
+
 695 Max Arrea of island
+
 ```cpp
 vector<int> direction{-1, 0, 1, 0, -1};
 int maxAreaOfIsland(vector<vector<int>>& grid){
@@ -61,7 +66,9 @@ int dfs(vector<vector<int>>& grid, int r, int c){
 }
 
 ```
+
 547 Friend Circles
+
 ```cpp
 //主函数
 int findCircleNum(vector<vector<int>>& friends){
@@ -85,7 +92,9 @@ void dfs(vector<vector<int>>& friends, int i, vector<bool>& visited){
     }
 }
 ```
+
 * 417 Pacific Atlantic Water Flow
+
 ```cpp
 vector<int> direction{-1,0, 1, 0, -1};
 //主函数
@@ -127,8 +136,11 @@ vod dfs(const vector<vector<it>>& matrix, vector<vector<int>>& can_reach, int r,
     }
 }
 ```
+
 ## 6.3 回溯法
+
 * 46 Permutations(Medium)
+
 ```cpp
 //主函数
 vector<vector<int> permute(vector<int>& nums)>{
@@ -149,4 +161,62 @@ void backtracking(vector<int> &nums, int level, vector<vector<int>> &ans){
     }
 }
 
+```
+* 77. combinations
+```cpp
+vector<vector<int>> combine(int n, int k){
+    vector<vector<int>> ans;
+    vector<int> comb(k, 0);
+    int count = 0;
+    backtracking(ans, comb, count, 1, n, k);
+    return ans;
+}
+// 辅函数
+void backtracking(vector<vector<int>>& ans, vector<int>& comb, int& count, int pos, int n, int k){
+    if(count == k){
+        ans.push_back(count);
+        return;
+    }
+    for(int i=pos; i<=n; ++i){
+        comb[count++] =i; //修改当前节点状态
+        backtracking(ans, comb, count, i+1, n, k);//递归子节点
+        --count;
+
+    }
+}
+```
+* 79. world search
+```cpp
+bool exit(vector<vector<char>>& board, string word){
+    i(board.empty()) return false;
+    int m = board.size(), n=board[0].size();
+    vector<vector<bool>> visited(m, vector<bool>)(n, false);
+    bool find = false;
+    for(int i=0; i<m ; ++i){
+        for(int j=0; j<n ;++j){
+            backtracking(i, j, board, word, find, visited, 0);
+        }
+    }
+    return find;
+}
+void backtracking(int i, int j, vector<vector<char>>& board, string& word, bool& find, vector<vector<bool>>& visited, int pos){
+    if(i<0 || i>=board.size() || j<0 || j>=board[0].size()){
+        return;
+    }
+    if(visited[i][j] || find || board[i][j] !=word[pos]){
+        return;
+    }
+    if(pos == word.size() - 1){
+        find = true;
+        return;
+    }
+    visited[i][j] = true;
+    //递归子节点
+    backtracking(i+1, j, board, word, find, visited, pos + 1);
+    backtracking(i-1, j, board, word, find, visited, pos + 1);
+    backtracking(i, j+1, board, word, find, visited, pos + 1);
+    backtracking(i, j-1, board, word, find, visited, pos + 1);
+    visited[i][j] = false;
+
+}
 ```
