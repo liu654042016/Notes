@@ -220,3 +220,156 @@ void backtracking(int i, int j, vector<vector<char>>& board, string& word, bool&
 
 }
 ```
+51. N-Queens(hard)
+```cpp
+//主函数
+vector<vector<string>> solveNQueens(int n){
+    vector<vector<string>> ans;
+    if(n==0){
+        return ans;
+    }
+    vector<string> board(n, string(n, '.'));
+    vector<bool> column(n, false), ldiag(2*n-1, false), rdiag(2*n-1, false);
+    backtracking(ans, board, column, ldiag, rdiag, 0, n);
+    return ans;
+}
+// 辅函数
+void backtracking(vector<vector<strig>> &ans, vector<string>&board, vector<bool> &column, vector<bool> &ldiag, vector<bool> &rdiag, int row, int n){
+    if(row == n){
+        ans.push_back(board);
+        return;
+    }
+    for(int i=0; i<n; ++i){
+        if(column[i] || ldiag[n-row+i-1] || rdiag[row+i]){
+            continue;
+        }
+        //修改当前节点状态
+        board[row][i] = 'Q';
+        column[i] = ldiag[n-row+i-1] = rdiag[row+i] = true;
+        //递归子节点
+        backtracking(ans, board, column, ldiag, rdiag, row+1, n);
+        //回改当前节点状态
+        board[row][i] = ',';
+        column[i] = ldiag[n-row+i-1] = rdiag[row+i] = false;
+    }
+}
+
+```
+## 6.4 广度优先搜索
+
+
+广度优先遍历图
+```cpp
+void bfs(vector<vector<int>>& graph, int start){
+    vector<bool> visited(graph.size(), false);
+    queue<int> q;
+    
+    visited[start] = true;
+    q.push(start);
+
+    while(!q.empty()){
+        int current = q.front();
+        q.pop();
+        cout << current <<" ";
+        
+        for(int neighbor : graph[current]){
+            if(!visited[neighbor]){
+                visited[neighbor] = true;
+                q.push[neighbor];
+            }
+
+        }
+    }
+}
+```
+广度优先遍历树
+```cpp
+void bfs(TreeNode* root){
+    if(root == nullptr){
+        return;
+    }
+    queue<TreeNode*> q;
+    q.push(root);
+
+    while(!q.empty()){
+        TreeNode* current = q.front();
+        q.pop();
+        cout << current->val << " ";
+
+        if(current->left! = nullptr){
+            q.push(current->left);
+        }
+        if(current->right!= nullptr){
+            q.push(current->right);
+        }
+    }
+}
+
+```
+
+934. shortest bridge
+```cpp
+vector<int> direction{-1, 0, 1,0, -1};
+//主函数
+int shortestBridge(vector<vector<int>>& grid){
+    int m  grid.size(), n = grid[0].size();
+    queue<pair<int, int>> points;
+    // dfs 寻找第一个岛屿， 并把1全部赋值为2
+    bool flipped = false;
+    for(int i=0; i<m ;++i){
+        if(flipped) break;
+        for(int j=0; j<n; ++j){
+            if(grid[i][j] == 1){
+                dfs(points, grid, m, n, i, j);
+                flipped = true;
+                break;
+            }
+        }
+    }
+    //bfs 寻找第二个岛屿，并把过程经过的0赋值为2
+    int x, y;
+    int level = 0;
+    while(!points.empty()){
+        ++level;
+        int n_points = points.size();
+        while(n_points--){
+            auto[r, c] = points.front();
+            grid[r][c] = 2;
+            points.pop();
+            for(int k=0; k<4; ++k){
+                x = r + direction[k], y = c+ direction[k+1];
+                if(x>=0 && y>=0 && x<m && y<n){
+                    if(grid[x][y] == 2){
+                        continue;
+                    }
+                    if(grid[x][y] == 1){
+                        return level;
+                    }
+                    points.push({x, y});
+                    grid[x][y] = 2;
+                }
+            }
+        }
+
+    }
+    return 0;
+}
+
+//辅函数
+void dfs(queue<pair<int, int>>& points, vector<vector<int>>& grid, int m, int n, int i, int j){
+    if(i<0 || j<0 || i==m || j==n || grid[i][j] = 2){
+        return;
+    }
+    i(grid[i][j] == 0){
+        points.push({i, j});
+        return;
+    }
+    grid[i][j] = 2;
+    dfs(points, grid, m, n, i-1, j);
+    dfs(points, grid, m, n, i+1, j);
+    dfs(points, grid, m, n, i, j-1);
+    dfs(points, grid, m, n , i, j+1);
+}
+
+
+```
