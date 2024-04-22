@@ -6,7 +6,7 @@
 
 ```cpp
 //回溯法
-void backtrack(vector<int> &choices, int state, vector<int>& res){
+void backtrack(vector<int> &choices, int state,int n, vector<int>& res){
     if(state ==n )
         res[0]++;
     //遍历所有选择
