@@ -1,6 +1,6 @@
-## 101
+# 101
 
-### 贪心
+## 第2章 贪心
 
 * 分配问题
 
@@ -57,7 +57,7 @@ int eraseOverlapIntervals(vector<vector<int>>& intervals){
 }
 ```
 
-### 双指针
+## 双指针
 
 #### Two Sum
 
@@ -158,7 +158,7 @@ string minWindow(string s, string T){
 }
 ```
 
-### 二分查找
+## 二分查找
 
 * 求开方
 
@@ -269,7 +269,7 @@ bool search(vector<int>& nums, int target){
 }
 ```
 
-### 排序算法
+## 排序算法
 
 * 常用排序算法
 
@@ -443,7 +443,7 @@ vector<int> topKFrequent(vector<int>& nums, int k){
 }
 ```
 
-### 一切皆可搜索
+## 一切皆可搜索
 
 * 算法解释
 * 深度优先搜索
@@ -982,7 +982,7 @@ vector<vector<int>> updateMatrix(vector<vector<int>>& matrix){
             }else{
                 if(j>0){
                     dp[i][j] = min(dp[i][j], dp[i][j-1] + 1);
-                  
+                
                 }
                 if(i>0){
                     dp[i][j] = min(dp[i][j], dp[i-1][j] + 1);
@@ -990,5 +990,1097 @@ vector<vector<int>> updateMatrix(vector<vector<int>>& matrix){
             }
         }
     }
+    for(int i=n-1, i>=0; --i){
+        for(int j=m-1, j>=0; --j){
+            if(matrix[i][j] !=0){
+                if(j<m-1){
+                    dp[i][j] = min(dp[i][i], dp[i][j+1]+1);
+                }
+                if(n<n-1){
+                    dp[i][j] = min(dp[i][j], dp[i+1][j] + 1);
+                }
+            }
+        }
+    }
+    return dp;
 }
 ```
+
+221. Maximal Square
+
+```cpp
+int maximalSquare(vector<vector<char>>& matrix){
+    if(matrix.empty() || matrix[0].empty()){
+        return 0;
+    }
+    int m = matrix.size(), n=matrix[0].size(), max_size = 0;
+    vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
+    for(int i=0; i<=m ; ++i){
+        for(int j=0; j<=n; ++j){
+            if(matrix[i-1][j-1] == '1'){
+                dp[i][j] = min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]) + 1;
+            }
+        }
+    }
+    return max_side*max_side;
+
+}
+```
+
+* 分割类型题
+
+279. Perfect Squares
+
+```cpp
+int numSquares(int n){
+    vector<int> dp(n+1, INT_MAX);
+    dp[0] = 0;
+    for(int i=1; i<=n; ++i){
+        for(int j=1; j*j<=i; ++j){
+            dp[i] = min(dp[i], dp[i-j*j]+1);
+        }
+    }
+    return dp[n];
+}
+
+```
+
+91. Decode Ways
+
+```cpp
+int numDecodings(string s){
+    int n =s.length();
+    if(n==0) return 0;
+    int prev = s[0] - '0';
+    if(!prev) return 0;
+    if(n==1) return 1;
+    vector<int> dp(n+1, 1);
+    for(int i=2; i<=n; ++i){
+        int cur = s[i-1] - '0';
+        if((prev==0 || prev>2) && cur == 0){
+            if(cur){
+                dp[i] = dp[i-2] + dp[i-1];
+            }else{
+                dp[i] = dp[i-2];
+            }else{
+                dp[i] = dp[i-1];
+            }
+            dp[i] =dp[i-1];
+        }
+        prev = cur;
+    }
+    return dp[n];
+}
+```
+
+139. Word Break
+
+```cpp
+bool wordBreak(string s, vector<string>& wordDict){
+    int n = s.length();
+    vector<bool> dp(n+1, false);
+    dp[0] = true;
+    for(int i =1; i<=n; ++i){
+        for(const string & word : wordDict){
+            int len = word.length();
+            if(i>= len && s.substr(i-len, len) == word){
+                dp[i] = dp[i] || dp[i-len];
+            }
+        }
+    }
+    return dp[n];
+}
+```
+
+7.5 子序列问题
+300. Longest Increasing Subsequence
+
+```cpp
+int lengthOfLIS(vector<int>& nums){
+    int max_length =0, n=num.size();
+    if(n<=1) return n;
+    for(int i=0; i<n ++i){
+        for(int j=0; j<i; ++j){
+            if(nums[i] > nums[j]){
+                dp[i] = max(dp[i], dp[j] + 1);
+            }
+        }
+        max_length = max(max_length, dp[i]);
+    }
+    return max_length;
+}
+
+int lengthOfLIS(vector<int>& nums){
+    int n = nums.size();
+    i(n<=1) return n;
+    vector<int> dp;
+    dp.push_back(nums[0]);
+    for(int i=1; i<n; ++i){
+        if(dp.back()<nums[i]){
+            dp.push_back(nums[i]);
+        }else{
+            auto itr  = lower_bound(dp.begin(), dp.end(), nums[i]);
+            *itr = nums[i];
+        }
+    }
+    return dp.size();
+}
+```
+
+1143. Longest Commom Subsequence
+
+```cpp
+int longestCommonSubsequence(string text1, string text2){
+    int m = text1.length(), n = text2.length();
+    vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
+    for(int i=0; i<=m; ++i){
+        for(int j=0; j<=n; ++j){
+            if(text1[i-1] == text2[j-1]){
+                dp[i][j] = dp[i-1][j-1] + 1;
+            }else{
+                dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+            }
+        }
+    }
+    return dp[m][n];
+}
+
+
+```
+
+7.6 背包问题
+0-1背包问题
+
+```cpp
+int knapsack(vector<int> weights, vector<int> values, int N, int M){
+    vector<vector<int>> dp(N+!, vector<int>(W+1, 0));
+    for(int i=1; i<=N; i++){
+        int w = weights[i-1], v = values[i-1];
+        for(int j=1; j<=M; j++){
+            if(j>=w){
+                dp[i][j] = max(dp[i-1][j], dp[i-1][j-w]+v);
+            }else{
+                dp[i][j] = dp[i-1][j];
+            }
+        }
+    }
+    retrun dp[N][W];
+}
+
+int knapsack(vector<int> weights, vector<int> values, int N, int W){
+    vector<int> dp(W+1, 0);
+    for(int i=1; i<=N; ++i){
+        int w = weights[i-1], v=values[i-1];
+        for(int j=W; j>=w; --j){
+            dp[j] = max(dp[j], dp[j-w]+v);
+        }
+    }
+    return dp[W];
+}
+
+```
+
+* 完全背包问题
+
+```cpp
+int knapsack(vector<int> &weights, vector<int> &values, int N, int W){
+    vector<vector<int>> dp(N+1, vector<M+1, 0>);
+    for(int i=1; i<=N; i++){
+        w = weights[i-1], v = value[i-1];
+        for(int j=1; j<=M;j++){
+            if(j>=w){
+                dp[i][j] = max(dp[i-1][j], dp[i][j-w]+v)；
+            }else{
+                dp[i][j] = dp[i-1][j];
+            }
+        }
+    }
+    return dp[N][M];
+}
+
+int knapsack(vector<int> weights, vector<int> values, int N, int W){
+    vector<int> dp(W+1, 0);
+    for(int i=1; i<=N; i++){
+        int w = weights[i-1], v = value[i-1];
+        for(int j=2; j<=W;++j){
+            dp[j] = max(dp[j], dp[j-w]+v);
+        }
+    }
+    return dp[W];
+}
+
+```
+
+416. Partition Equal Subset Sum
+
+```cpp
+bool canPartition(vector<int> &nums){
+    int sum = accumulate(nums.begin(), nums.end(), 0);
+    if(sum%2) return false;
+    int target = sum /2, n=num.size();
+    vector<vector<int>> dp(n+1, vector<bool>(target=1， false));
+    dp[0][0] = true;
+    for(int i=1; i<=N; ++i){
+        for(int j=0; j<= target; ++j){
+            if(j<nums[i-1]){
+                dp[i][j] = dp[i-1][j];
+            }else{
+                dp[i][j] = dp[i-1][j] || dp[i-1][j-nums[i-1]];
+            }
+        }
+    }
+    return dp[n][target];
+}
+
+bool canPartition(vector<int> &nums){
+    int sum = accumulate(nums.begin(), nums.end(), 0);
+    if(sum % 2) return false;
+    int target = su /2, num.size();
+    vector<bool> dp(target+1, false);
+    dp[0] = true;
+    for(int i=1; i<=n; i+=){
+        for(int j=target; j>= nums[i-1]){
+            dp[j] = dp[j] || dp[j-nums[i-1]];
+        }
+    }
+    return dp[target];
+}
+```
+
+474. Ones and Zeros
+
+```cpp
+int findMaxForm(vector<string>& strs, int m, int n){
+    vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
+    for(const string &str:strs){
+        auto [count0, count1] = count(str);
+        for( int i=m; i>= count0; --i){
+            for(j =n; j>=count1; --j){
+                dp[i][j] = max(dp[i][j], 1+ [i-count0][j-count1]);
+            }
+        }
+    }
+    return dp[m][n];
+}
+//辅函数
+pair<int, int> count(const string& s){
+    int count0 = s.length(), count1 = 0;
+    for(const char & c : s){
+        if(c== '1'){
+            ++count1;
+            --count0;
+        }
+        return make_pair(count0, count1);
+    }
+}
+```
+
+322. Coin Changes
+
+```cpp
+dp[i][j] = min(dp[i-1][j], dp[i][j-v] + 1)
+dp[j] = min(dp[j], dp[j-coin] + 1)
+int coinChange(vector<vector<int>> &coins, int amount){
+    if(coins.empty()) return -1;
+    vector<int> dp(amount + 1, amount +1);
+    dp[0]=[0];
+    for(int i=1; i<= amount; ++i){
+        for(const int & coin : coins){
+            dp[i] min(dp[i], dp[i-coin] + 1);
+        }
+    }
+    return dp[amount] == amount + 1 ? -1 dp[amount];
+}
+```
+
+* 7.7 字符串编辑
+  7.2 Edit Distance
+
+```cpp
+//
+int minDistance(string word1, string word2){
+    int m = word1.length(), n=word2.length();
+    vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
+    for(int i=0; i<=m ;i++){
+        for(int j=0; j<=n; j++){
+            if(i==0){
+                dp[i][j] = j;
+            }else if(j==0){
+                dp[i][j] = i;
+            }else{
+                dp[i][j] = min(dp[i-1][j-1]+((word[i-1]==word2[j-1])?0:1, min(dp[i-1][j]+1, dp[i][j-1]+1));
+            }
+        }
+    }
+    return dp[m][n];
+}
+```
+
+650. 2 Keys Keyboard
+
+```cpp
+dp[i] = dp[j] + dp[i/j]
+int minSteps(int n){
+    vector<int> dp(n+1);
+    for(int i=2; i<=n; ++i){
+        dp[i] = i;
+        for(int j=2 ; j*j<=i; ++j){
+            if(i%j==0){
+                dp[i] = dp[j] + dp[i/j];
+                brak;
+            }
+        }
+    }
+    return dp[n];
+
+}
+```
+
+10. Regular Expression Matching
+
+```cpp
+bool isMatch(string s, string p){
+    int m = s.size(), n = p.size();
+    vector<vector<bool>> dp(m+1, vector<bool>(n+1, false));
+    dp[0][0] = true;
+    for(int i=1; i<=n; ++i){
+        if(p[i-1] == '*'){
+            dp[0][i] = dp[0][i-2];
+        }
+    }
+    for(int i=1; i<=m ; ++i){
+        for(int j=1; j<=n; ++j){
+            if(p[j-1] == '.'){
+                dp[i][j] = dp[i-1][j-1];
+            }else if(p[j-1] != '*'){
+                dp[i][j] = dp[i-1][j-1] && p[j-1] = s[i-1];
+            }else if(p[j-2] != s[i-1] && p[j-2] != ','){
+                dp[i][j] = dp[i][j-2];
+            }else{
+                dp[i][j] = dp[i][j-1] || dp[i-1][j] || dp[i][j-2];
+            }
+        }
+    }
+    return dp[m][n];
+}
+```
+
+* 7.8 股票交易
+
+121. Best Time to Buy and Sell Stock
+
+```cpp
+int maxProfit(vector<int>& prices){
+    int sell =0; buy = INT_MIN;
+    for(int i=0; i<prices.size(); ++i){
+        buy = max(buy, -prices[i]);
+        sell = max(sell, buy+prices[i]);
+    }
+    return sell;
+}
+
+```
+
+## 化繁为简的分治法
+
+* 表达式问题
+
+241. Different Ways to Add Parentheses
+
+```cpp
+vector<int> diffWaysToCompute(string input){
+    vector<int> ways;
+    for(int i=0; i<input.length(); i++){
+        char c = input[i];
+        if(c=='+' || c=='-' || c=='*'){
+            vector<int> left = diffWaysToCompute(input.substr(0, i));
+            vector<int> right = diffWaysToCompute(input.substr(i+1));
+            for(const int & l:left){
+                for(const int &r : right){
+                    switch(c){
+                        case '+' : ways.push_back(l+r);break;
+                        case '-' : ways.push_back(l-r);break;
+                        case '*' : ways.push_back(l*r);break;
+                    }
+                }
+            }
+        }
+        if(ways.empty()) ways.push_back(stoi(inputs));
+        return ways;
+    }
+}
+// dp//不会
+vector<int> diffWaysToCompute(string input){
+    vector<int> data;
+    vector<int> ops;
+    int num = 0;
+    char op = ' ';
+    istringstream ss(input + "+");
+    while(ss>>num && ss>>op){
+        data.push_back(num);
+        ops.push_back(op);
+    }
+    int n = data.size();
+}
+```
+
+## 11 妙用数据结构
+
+* 11.2 数组
+
+448. Find All Numbers Disappeared in an Array
+
+```cpp
+vector<int> findDisappearedNumbers(vector<int>& nums){
+    vector<int> ans;
+    for(const int & num:nums){
+        int pos = abs(num) - 1;
+        if(nums[pos]>0){
+            nums[pos] = -nums[pos];
+        }
+    }
+    for(int i=0; i<nums.size();++i){
+        if(nums[i]>0){
+            ans.push_back(i+1);
+        }
+    }
+    return ans;
+}
+```
+
+48. Rotate Image
+
+```cpp
+void rotate(vector<vector<int>>& matrix){
+    int temp = 0, n = matrix.size() - 1;
+    for(int i=0; i<= n/2; ;++i){
+        for(int j=i; j<n-i;++j){
+            temp = matrix[j][n-i];
+            matrix[j][n-i] = matrix[i][j];
+            matrix[i][j] = matrix[n-j][i];
+            matrix[n-j][i] = matrix[n-i][n-j];
+            matrix[n-i][n-j] = temp;
+        }
+    }
+}
+
+```
+
+240. Search a 2D Matrix II
+
+```cpp
+bool searchMatrix(vector<vector<int>>& matrix, int target){
+    int m = matrix.size();
+    if(m==0)
+        return false;
+    int n = matrix[0].size();
+    int i=0; j=n-1;
+    while(i<m && j>=0){
+        if(matrix[i][j] == target){
+            return true;
+        }else(if matrix[i][j] > target){
+            --j
+        }else{
+            ++i
+        }
+    }
+    return false;
+}
+```
+
+769. Max Chunks To Make Sorted
+
+```cpp
+int maxChunksToSorted(vector<int>& arr){
+    int chunks = 0; cur_max = 0;
+    for(int i=0; i<arr.size(); i++){
+        cur_max = max(cur_max, arr[i]);
+        if(cur_max == i){
+            ++chunks;
+        }
+    }
+    return chunks;
+}
+```
+
+* 11.3 栈和队列
+
+232. Implement Queue using Stacks
+
+```cpp
+ex
+MyQueue queue = new MyQueue();
+queue.push(1);
+queue.push(2);
+queue.peek();
+queue.pop();
+queue.empty();
+
+class MyQueue{
+    stack<int> in, out;
+public:
+    MyQueue() {}
+    void push(int x){
+        in.push(x);
+    }
+    int pop(){
+        in2out();
+        int x = out.top();
+        out.pop();
+        return x;
+    }
+    int peek(){
+        in2out();
+        return out.top();
+    }
+    void in2out(){
+        if(out.empty()){
+            while(!in.empty()){
+                int x = in.top();
+                in.pop();
+                out.push(x);
+            }
+        }
+    }
+    bool empty(){
+        return in.empty() && out.empty();
+    }
+};  
+```
+
+155. Min Stack
+
+```cpp
+MinStack minStack = new MinStack();
+minStack.push(-2);
+minStack.push(0);
+minStack.push(-3);
+minStack.getMin();// return -3
+minStack.pop();
+minStack.top();//
+minStack.getMin();//
+
+class MinStack(){
+    stack<int> s, min_s;
+    public:
+    MinStack() {}
+    void push(int x){
+        s.push(x);
+        if(min_s.empty() || min_s.top()>=0){
+            min_s.push(x);
+        }
+    }
+    void pop(){
+        if(!min_s.empty() && min_s.top() == s.top()){
+            min_s.pop();
+        }
+        s.pop();
+    }
+
+    int top(){
+        return s.top();
+    }
+    int getMin(){
+        return min_s.top();
+    }
+}
+```
+
+20. Valid Parentheses
+
+```cpp
+bool isValid(string s){
+    stack<char> parsed;
+    for(int i=0; i<s.length(); ++i){
+        if(s[i] == '{' || s[i] == '[' || s[i]=='(' ){
+            parsed.push(s[i]);
+        }else{
+            if(parsed.empty()){
+                return false;
+            }
+            char c = parsed.top();
+            if(s[i] == '}' && c == '{' ||
+               s[i] == ']' && c == '[' ||
+               c[i] == ')' && c == '('){
+                parsed.pop();
+               }else{
+                return false;
+               }
+        }
+    }
+    return parsed.empty();
+}
+```
+
+* 11.4 单调栈
+
+739. Daily Temperatures
+
+```cpp
+vector<int> dailyTemperatures(vector<int> & temperatures){
+    int n = temperate.size();
+    vector<int> ans(n);
+    stack<int> indices;
+    for(int i=0; i<n;++i){
+        while(!indices.empty()){
+            int pre_index = indices.top();
+            if(temperatures[i]<= temperatures[pre_index]){
+                break;
+            }
+            indices.pop();
+            ans[pre_index] = i - pre_index;
+        }
+        indices.push(i);
+    }
+    return ans;
+}
+```
+
+* 11.5 优先队列
+  完全二叉树用堆来实现，每个节点的值总是大于等于子节点的值，具体实现存储是个数组
+
+```cpp
+vector<int> heap;
+
+//上浮
+void swim(int pos){
+    while(pos>0 && heap[(pos-1)/2]<heap[pos]){
+        swap(heap[(pos-1)/2], heap[pos]);
+        pos = (pos-1)/2;
+    }
+}
+
+//下沉
+void sink(int pos){
+    while(2*pos + 1 <= N){
+        int i = 2 * pos + 1;
+        if(i<N && heap[i] <heap[i+1]) ++i;
+        if(heap[pos] >= heap[i] ) break;
+        swap(heap[pos], heap[i]);
+        pso = i;
+    }
+}
+
+// 插入任意值， 把数字放到最后一位， 然后上浮
+void push(int k){
+    heap.push_back(k);
+    swim(heap.size() - 1);
+}
+// 删除最大值：把最后一个数字挪到开头， 然后下沉
+void pop(){
+    heap[0] = heap.back();
+    heap.pop_back();
+    sink(0);
+}
+
+//获得最大值
+int top(){
+    return heap[0];
+}
+```
+
+23. Merge k Sorted Lists
+
+```cpp
+struct Comp{
+    bool operator()(ListNode* l1, ListNode* l2){
+        return l1->val > l2->val;
+    }
+};
+ListNode* mergeKLists(vector<ListNode*>& lists){
+    if(lists.empty()) return nullptr;
+    priority_queue<ListNode* , vector<ListNode*>, Comp> q;
+    for(ListNode* list:lists){
+        if(list){
+            q.push(list);
+        }
+    }
+    ListNode* dummy = new ListNode(0), *cur = dummy;
+    while(!q.empty()){
+        cur->next = q.top();
+        q.pop();
+        cur = cur->next;
+        if(cur->next){
+            q.push(cur->next);
+        }
+    }
+    return dummy->next;
+}
+```
+
+218. The Skyline Problem
+
+```cpp
+vector<vector<int>> getSkyline(vector<vector<int>>& buildings){
+    vector<vector<int>> ans;
+    priority_queue<pair<int>> max_heap;<//高度，右端>
+    int i=0; len = buildings.size();
+    int cur_x, cur_h;
+    while(i<len || !max_heap.empty()){
+        if(max_heap.empty() || i<len && buildings[i][0] <= max_heap.top().second){
+            cur_x = buildings[i][0];
+            while(i < len && cur_x == buildings[i][0]){
+                max_heap.emplace(buildings[i][2], buildings[i][1]);
+                ++i;
+            }
+        }else{
+            cur_x = max_heap.top().second;
+            while(!max_heap.empty() && cur_x >= max_heap.top().second){
+                max_heap.pop();
+            }
+        }
+        cur_h =(max_heap.empty()) ? 0 : max_heap.top().first;
+        if(ans.empty() || cur_h != ans.back()[1]){
+            ans.push_back(cur_x, cur_h);
+        }
+    }
+    return ans;
+}
+```
+
+* 11.6 双端队列
+
+```cpp
+vector<int> maxSlidingWindows(vector<int>& nums, int k){
+    deque<int> dq;
+    vector<int> ans;
+    for(int i=0; i<nums.size(); ++i){
+        if(!dq.empty() && dq.front() == i-k){
+            dq.pop_front();
+        }
+        while(!dq.empty() && nums[dp.back()]<nums[i]){
+            dq.pop_back();
+        }
+        dp.push_back();
+        if(i>=k-1){
+            ans.push_back(nums[dq.front()]);
+        }
+    }
+    return ans;
+}
+
+```
+
+* 11.7 哈希表
+
+```cpp
+int MyHash(const int& key, const int& tableSize){
+    return ky % tableSize;
+}
+
+```
+
+1. Two Sum
+2. Longest Consecutive Sequence
+3. Max Points on a Line
+
+## 令人头大的字符串
+
+* 12.1 引言
+* 12.2 字符串比较
+
+242. Valid Anagram
+
+```cpp
+bool isAnagram(string s, string t){
+    if(s.length() != t.length())
+        return false;
+    vector<int i=0; i<s.length();++i>{
+        ++counts[s[i] - 'a'];
+        --counts[t[i] - 'a'];
+    }
+    for(int i=0; i<26; i++){
+        if(counts[i])
+            return false;
+      
+    }
+    return true;
+}
+```
+
+205. Isomorphic Strings
+
+```cpp
+
+```
+
+647. Palindromic Substrings
+
+```cpp
+
+```
+
+696. Cont Binary Substrings
+
+```cpp
+
+```
+
+* 12.3 字符串理解
+
+227. Basic Calculator
+
+```cpp
+int calculate(string s){
+    int i=0;
+    return parseExpr(s, i);
+}
+
+//辅助函数
+int parseExpr(const string& s, int& i){
+    char op = '+';
+    long left = 0, right = 0;
+    while(i<s.length()){
+        if(s[i] != ''){
+            long n = parseNum = (s, i);
+            switch(op){
+                case '+' : left += right;right=n;break;
+                case '-' : left += right;right = -n;break;
+                case '*' : right *= n; break;
+                case '/' : right /= n ; break;
+            }
+            if(i<s.length()){
+                op = s[i];
+            }
+        }
+        ++i;
+    }
+    return left+right;
+}
+
+long parseNum(const string& s, int& i){
+    long n =0;
+    while(i<s.length() && isdigit(s[i])){
+        n = 10 * n + (s[i++] - '0');
+    }
+    return n;
+}
+```
+
+* 12.4 字符串匹配
+
+28. Implement strStr
+
+```cpp
+int strStr(string haystack, string needle){
+    int k =-1, n = haystack.length(), p = needle.length();
+    if(p==0) return 0;
+    vector<int> next(p, -1);
+    callNext(needle, next);
+    for(int i=0; i<n; ++i){
+        while(k>-1&& needle[k+1] != haystack[i]){
+            k = next[k];
+        }
+        if(needle[k+1] == haystack[i]){
+            ++k;
+        }
+        if(k==p-1){
+            return i-p + 1;
+        }
+    }
+    return -1;
+}
+
+void calNext(const string &needle, vector<int> &next){
+    for(int j=1, p=-1; j<needle.length(); ++j){
+        while(p>-1 && needle[p+1] != needle[j]){
+            p = next[p];
+        }
+        if(needle[p+1]==needle[j]){
+            ++p;
+        }
+        next[j] = p;
+    }
+}
+
+```
+
+## 第 13 章  指针三剑客之一 ： 链表
+
+* 13.1 数据结构介绍
+
+```cpp
+struct ListNode{
+    int val;
+    ListNode *next;
+    ListNode(int x) : val(x), next(nullptr){}
+};
+```
+
+* 13.2 链表的基本操作
+
+206. Revers Linked List
+
+```cpp
+ListNode* reverseList(ListNode* head, ListNode prev=nullptr){
+    if(!head){
+        return prev;
+    }
+    ListNode* next = head->next;
+    head->next = prev;
+     return reverseList(next, head);
+  
+}
+ListNode* reverseList(ListNode* head){
+    ListNode *prev = nullptr, *next;
+    while(head){
+        next = head->next;
+        head->next = prev;
+        prev = head;
+        head = next;
+    }
+    return prev;
+}
+```
+
+21. Merge Two Sorted
+
+```cpp
+ListNode* mergedList(ListNode* l1, ListNode* l2){
+    if(!l2){
+        return l1;
+    }
+    if(!l1){
+        return l2;
+    }
+    if(l1->val > l2->val){
+        l2->next = mergeTwoLists(l1, l2->next);
+        return l2;
+    }
+    l1->next = mergeTwoList(l1->next, l2);
+    return l1;
+}
+ListNode* mergeTwoLists(ListNode * l1, ListNode* l2){
+    ListNode *dummy = new ListNode(0), *node = dummy;
+    while(l1  && l2){
+        if(l1->val >= l2->val){
+            node->next = l1;
+            l1 = l1->next;
+        }else{
+            node->next = l2;
+            l2 = l2->next;
+        }
+        node = node - >next;
+    }
+    node->next = l1 ? l1:l2;
+    return dummy->next;
+}
+```
+
+24. Swap Nodes in Pairs
+
+```cpp
+ListNode* swapPairs(ListNode* head){
+    ListNode *p = head, *s;
+    if(p && p->next){
+        s = p->next;
+        p->next = s->next;
+        s->next = p;
+        head = s;
+        while(p->next && p->next->next){
+            s = p->next->next;
+            p->next->next = s->next;
+            s->next = p->next;
+            p->next = s;
+            p = s->next;
+        }
+    }
+    return head;
+}
+```
+
+* 13.3 其他链表技巧
+
+160. Intersection Of Two Linked Lists
+
+```cpp
+ListNode *getIntersectionNode(ListNode *headA, ListNode *headB){
+    ListNode *l1=headA, *l2=headB;
+    while(l1!=l2){
+        l1 = l1?l1->next : HeadB;
+        l2 = l2?l2->next : headA;
+    }
+    return l1;
+}
+```
+
+234. Palindrome Linked List
+
+```cpp
+bool isPalindrome(ListNode* head){
+    if(!head || !head->next){
+        return true;
+    }
+    ListNode *slow = head, *fast = head;
+    while(fast->next && fast->next->next){
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    slow->next = reverseList(slow->next);
+    slow = slow->next;
+    while(slow){
+        if(head->val != slow->val){
+            return false;
+        }
+        head = head->next;
+        slow = slow->next;
+    }
+    return true;
+}
+ListNode* reverseList(ListNode* head){
+    ListNode *prev = nullptr *next;
+    while(head){
+        next = head->next;
+        head->next = prev;
+        prev = head;
+        head = next;
+    }
+    return prev;
+}
+
+```
+
+## 第 14 章 指针三剑客之二： 树
+
+* 14.1 数据结构介绍
+
+```cpp
+struct TreeNode{
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode(int x):val(x), left(NULL), right(NULL) {}
+}
+```
+
+* 14.2 树的递归
+
+104. Maximum Depth of Binary Tree
+
+```cpp
+int maxDepth(TreeNode* root){
+    return root? 1+max(maxDepth(root->left), maxDepth(root->right)) : 0;
+}
+```
+
+110. Balanced Binary Tree
+
+```cpp
+bool isBalanced(TreeNode* root){
+    return helper(root) != -1;
+}
+//辅函数
+int helper(TreeNode* root){
+    if(!root){
+        return 0;
+    }
+    int left = helper(root->left),right = helper(root->right);
+    if(left == -1 || right ==-1 || abs(left-right)>1){
+        return -1;
+    }
+    return 1+max(left,right);
+}
+
+```
+
+543. Diameter of Binary Tree
