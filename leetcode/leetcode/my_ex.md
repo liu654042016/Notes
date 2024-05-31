@@ -982,7 +982,7 @@ vector<vector<int>> updateMatrix(vector<vector<int>>& matrix){
             }else{
                 if(j>0){
                     dp[i][j] = min(dp[i][j], dp[i][j-1] + 1);
-                
+              
                 }
                 if(i>0){
                     dp[i][j] = min(dp[i][j], dp[i-1][j] + 1);
@@ -1792,7 +1792,7 @@ bool isAnagram(string s, string t){
     for(int i=0; i<26; i++){
         if(counts[i])
             return false;
-      
+    
     }
     return true;
 }
@@ -2084,3 +2084,320 @@ int helper(TreeNode* root){
 ```
 
 543. Diameter of Binary Tree
+
+```cpp
+int diameterOfBinaryTree(TreeNode* root){
+    int diameter = 0;
+    helper(root, diameter);
+    return diameter;
+}
+
+int helper(TreeNode* node, int& diameter){
+    if(!node)
+        return 0;
+    int l = helper(node->left, diameter);
+    int r = helper(node->right, diameter);
+    diameter = max(l+r, diameter);
+    return max(l,r)+1;
+}
+```
+
+437. Path Sum III
+
+```cpp
+int pathSum(TreeNode* root, int sum){
+    return root ? pathSumStartWithRoot(root, sum)+pathSum(root->left, sum) + pathSum(root->right, sum) : 0;
+}
+
+//辅函数 
+long long pathSumStartWithRoot(TreeNode* root, long long sum){
+    if(!root)
+        return 0;
+    long long count =root->val == sum ? 1 : 0;
+    count += pathSumStartWithRoot(root->left, sum-root->val);
+    count +=pathSumStartWithRoot(root->right, sum-root->val);
+    return count;
+}
+
+```
+
+101. Symmetric Tree
+
+```cpp
+//主函数
+bool isSymmetric(TreeNode* root){
+    return root ? isSymmetric(root->left, root->right) : true;
+}
+//辅函数
+bool isSymmetric(TreeNode* left, TreeNode* right){
+    if(!left && !right){
+        return true;
+    }
+    if(!left || !right){
+        return false;
+    }
+    if(left->val != right->val){
+        return false;
+    }
+    return isSymmetric(left->left, right->right) && isSymmetric(left->right, right->left);
+}
+```
+
+1110. Delete Node And Return Froest
+
+```cpp
+vector<TreeNode*> delNodes(TreeNode* root, vector<int>& to_delete){
+    vector<TreeNode*> forest;
+    unordered_set<int> dict(to_delete.begin(), to_delete.end());
+    root = helper(root, dict, forest);
+    if(root){
+        forest.push_back(root);
+    }
+    return forest;
+}
+//辅函数
+TreeNode* helper(TreeNode* root, unordered_set<int>& dict, vector<TreeNode*> & forest){
+    if(!root){
+        return root;
+    }
+    root->left = helper(root->left, dict, forest);
+    root->right = helper(root->right, dict, forest);
+    if(dict.count(root->val)){
+        if(root->left){
+            forest.push_back(root->left);
+        }
+        if(root->right){
+            forest.push_back(root->right);
+        }
+        root = NULL;
+    }
+    return root;
+}
+```
+
+* 14.3 层次遍历
+
+637. Average of Levels in Binary
+
+```cpp
+vector<double> averageOfLevels(TreeNode* root){
+    vector<double> ans;
+    if(!root){
+        return ans;
+    }
+    queue<TreeNode*> q;
+    q.push(root);
+    while(!q.empty()){
+        int count = q.size();
+        double sum = 0;
+        for(int i=0; i<count; i++){
+            TreeNode* node = q.front();
+            q.pop();
+            sum+=node->val;
+            if(node->left){
+                q.push(node->left);
+            }
+            if(node->right){
+                q.push(node->right);
+            }
+        }
+        ans.push_back(sum / count);
+    }
+    return ans;
+}
+```
+
+### 14.4 前中后序遍历
+
+```cpp
+void preorder(TreeNode* root){
+    visit(root);
+    preorder(root->left);
+    preorder(root->right);
+}
+void inorder(TreeNode* root){
+    inorder(root->left);
+    visit(root);
+    inorder(root->right);
+}
+void postorder(TreeNode* root){
+    postorder(root->left);
+    postorder(root->right);
+    visit(root);
+}
+```
+
+105. Construct Binary Tree from Preorder and Inorder Travel
+
+```cpp
+TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder){
+    if(preorder.empty()){
+        return nullptr;
+    }
+    unordered_map<int, int> hash;
+    for(int i=0; i<preorder.size();++i){
+        hash[inorder[i]] = i;
+    }
+    return buildTreeHelper(hash, preorder, 0, preorder.size()-1, 0);
+}
+//辅函数
+TreeNode* buildTreeHelper(unordered_map<int, int> &hash, vector<int>& preorder, int s0, int e0, int s1){
+    if(s0 > e0){
+        return nullptr;
+    }
+    int mid = preorder[s1], index = hash[mid], leftLen = index -s0 - 1;
+    TreeNode* node = new TreeNode(mid);
+    node->left = buildTreeHelper(hash, preorder, s0, index-1, s1+1);
+    node->right = buildTreeHelper(hash, preorder, index+1, e0, s1+2+leftLen);
+    return node;
+}
+
+```
+
+114. Binary Tree Preorder Traversal
+
+```cpp
+vector<int> preorderTravelsal(TreeNode* root){
+    vector<int> ret;
+    if(!root){
+        return ret;
+    }
+    stack<TreNode*> s;
+    s.push(root);
+    while(!s.empty()){
+        TreeNode* node = s.top();
+        s.pop();
+        ret.push_back(node->val);
+        if(node->right){
+            s.push(node->right);
+        }
+        if(node->left){
+            s.push(root->left);
+        }
+    }
+    return ret;
+}
+```
+
+### 14.5 二叉查找树
+
+```cpp
+template <class T>
+class BST{
+    struct Node{
+        T data;
+        Node* left;
+        Node* right;
+    };
+
+    Node* root;
+
+    Node* makeEmpty(Node* t){
+        if(t==NULL) return NULL;
+        makeEmpty(t->left);
+        makeEmpty(t->right);
+        delete t;
+        return NULL;
+    }
+
+    Node* insert(Node* t, T x){
+        if(t==NULL){
+            t = new Node;
+            t->data = x;
+            t->left = t->right = NULL;
+        }else if(x<t->data){
+            t->left = insert(t>left, x);
+        }else if(x > t->data){
+            t->right = insert(t->right, x);
+        }
+        return t;
+    }
+
+    Node* find(Node* t, T x){
+        if(t==NULL) return NULL;
+        if(x<t->data) return find(t->left, x);
+        if(x>t->data) return find(t->right, x);
+        return t;
+    }
+
+    Node* findMin(Node* t){
+        if(t==NULL || t->left == NULL) return t;
+        return findMin(t->left);
+    }
+
+    Node** remove(Node* t, T x){
+        Node* temp;
+        if(t==NULL) return NULL;
+        else if(x<t->data) t->left = remove(t->left, x);
+        else if(x>t->data) t->right = remove(t->right,x);
+        else if(t->left && t->right){
+            temp = findMin(t->right);
+            t->data = temp->data;
+            t->right = remove(t->right, t->data);
+        }else{
+            temp = t;
+            if(t->left == NULL) t=t->right;
+            else if(t->right == NULL) t = t->left;
+            return temp;
+        }
+        return t;
+    }
+public:
+    BST():root(NULL){}
+    ~BST(){
+        root = makeEmpty(root);
+    }
+    void insert(T x){
+        insert(root, x);
+    }
+    void remove(T, x){
+        remove(root, x);
+    }
+
+}
+```
+
+99. Recover Binary Search Tree
+
+```cpp
+void recoverTree(TreeNode* root){
+    TreeNode *mistake1 = nullpte, mistake2 = nullptr,*prev = nullptr;
+    inorder(root, mistake1, mistake2, prev);
+    if(mistake1 && mistake2){
+        int temp = mistak1->val;
+        mistake1->val = mistake2->val;
+        mistake2->val = temp;
+    }
+}
+
+void inorder(TreeNode* root, TreeNode*& mistake1, TreeNode*& mistake2, TreeNode*& prev){
+    if(!root){
+        return;
+    }
+    if(root->left){
+        inorder(root->left, mistake1,mistake2, prev);
+    }
+    if(prev && root->val < prev->val){
+        if(!mistake1){
+            mistake1 = prev;
+            mistake2 = root;
+        }else{
+            mistake2 = root;
+        }
+        cout << mistake1->val;
+        cout << mistake2->val;
+    }
+    prev = root;
+    if(root->right){
+        inorder(root->right, mistake1, mistake2, prev);
+    }
+}
+
+```
+
+## 第 15 章图
+
+### 15.1 数据结构介绍
+
+邻接矩阵
+邻接链表
