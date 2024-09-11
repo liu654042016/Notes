@@ -1,2 +1,189 @@
-## optim gemm
-### 
+## [optim gemm](https://blog.csdn.net/kunhe0512/article/details/131369624)
+### base
+```cpp
+//a[][]*b[][]=c[][]
+//
+//
+//                  b00 b01 b02 b03
+//                  b10 b11 b12 b13
+//                  b20 b21 b22 b23
+//                  b30 b31 b32 b33
+//
+//a00 a01 a02 a03   c00 c01 c02 c03
+//a10 a11 a12 a13   c10 c11 c12 c13
+//a20 a21 a22 a23   c20 c21 c22 c23
+//a30 a31 a32 a33   c30 c31 c32 c33
+//
+//c21 = a20*b01+a21*b11+a22*b12+a23*b13
+//
+//share memory
+//                      sb_0_0   sb_0_1
+//
+//                      b00 b01   b02 b03
+//                      b10 b11   b12 b13
+//
+//                      sb_1_0    sb_1_1
+//
+//                      b20 b21   b22 b23
+//                      b30 b31   b32 b33
+//
+//
+//ab_0_0    ab_0_1      cb_0_0    cb_0_1 
+//
+//a00 a01   a02 a03     C00 C01   C02 C03 
+//a10 a11   a12 a13     C10 C11   C12 C13
+//
+//ab_1_0    ab_1_1      cb_1_0    cb_1_1
+//
+//a20 a21   a22 a23     C20 C21   C22 C23
+//a30 a31   a32 a33     C30 C31   C32 C33
+//
+//cb_11 =  ab_1_0 * sb_0_1 + ab_1_1*sb_1_1
+                     
+                     
+
+
+__global__ void gpu_matrix_mult(int *a, int *b, int *c, const int size){
+    int y = blockDim.y * blockIdx.y + threadIdx.y;
+    int x = blockDim.x * blockIdx.x + threadIdx.x;
+
+    int tmp = 0;
+    if(x<size && y<size){
+        for( int step = 0; step <size; ++step){
+            tmp += a[y*size+step]*b[step*sze+x];
+        }
+        c[y*size+x] = tmp;
+    }
+}
+
+
+#define M 1000
+#define N 500
+#define K 1000
+
+#define BLOCK_SIZE 1000
+// lanch kernel
+//a[M,N] b[N,K] c[M,K]
+unsigned int grid_x = (K+BLOCK_SIZE - 1)/BLOCK_SIZE
+unsigned int grid_y = (M+BLOCK_SIZE - 1)/BLOCK_SIZE
+
+dim3 dimGrid(grid_x, grid_y)
+dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE)
+
+gpu_matrix<<<dimGrid,dimBlock>>>(a,b,c_gpu, M, N, K)
+
+__global__ void gpu_matirx(int* a, int* b, int* c, int m, int n, int k){
+    __shared__ int sub_a[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ int sub_b[BLOCK_SIZE][BLOCK_SIZE];
+
+    int x = blockIdx.x * blockDim.X + threadIdx.x;
+    int y = blockIdy.y * blockDim.y + threadIdx.y;
+
+    int tmp = 0;
+    int idx;
+
+    for(int step = 0; step<= n/BLOCK_SIZE; step++){
+        // load a 矩阵
+        int step_x = step*BLOCK_SIZE + threadIdx.x;
+        int step_y = y;
+
+        idx = step_y*n + step_x;
+        if(step_x>=n || step_y>=m){
+            sub_a[threadIdx.y][threadIdx.x] = 0;
+        }else{
+            sub_a[threadIdx.y][threadIdx.x] = a[idx];
+        }
+
+        // load b 矩阵
+        step_x = x;
+        step_y = step*BLOCK_SIZE + threadIdx.y;
+        idx = step_y*k + step_x;
+        idx = step*k + step_x;
+
+        if(step_x>=k || step_y >=n){
+            sub_b[threadIdx.y][threadIdx.x] = 0;
+        }else{
+            sub_b[threadIdx.y][threadIdx.x] = b[idx];
+        }
+
+        __syncthreads();
+
+        for(int i=0; i<BLOCK_SIZE; i++){
+            tmp+=sub_a[threadIdx.y][i] * sub_b[i][threadIdx.x];
+        }
+        __syncthreads();
+    }
+    if(x<k && y<m){
+        c[y*k+x] = tmp;
+    }
+}
+
+```
+### transpose
+[reference](https://blog.csdn.net/weixin_55035144/article/details/130742866)
+```cpp
+//matrix transpose
+//
+//in    b00 b01 b02 | b03 b04 b05 | b06 b07 b08
+//      b10 b11 b12 | b13 b14 b15 | b16 b17 b18
+//      b20 b21 b22 | b23 b24 b25 | b26 b27 b28
+//      ------------+-------------+------------
+//      b30 b31 b32 | b33 b34 b35 | b36 b37 b38
+//      b40 b41 b42 | b43 b44 b45 | b46 b47 b48
+//      b50 b51 b52 | b53 b54 b55 | b56 b57 b58
+//
+//
+//
+//out   b00 b10 b20 | b30 b40 b50
+//      b01 b11 b21 | b31 b41 b51
+//      b02 b12 b22 | b32 b42 b52
+//      ------------+------------
+//      b03 b13 b23 | b33 b43 b53
+//      b04 b14 b24 | b34 b44 b54
+//      b05 b15 b25 | b35 b45 b55
+//      ------------+------------
+//      b06 b16 b26 | b36 b46 b56
+//      b07 b17 b27 | b37 b47 b57
+//      b08 b18 b28 | b38 b48 b58
+//
+//shared memory
+//t57 read b57 from global memroy to shared memroy
+//t57 read b48 from shared memory
+//t57 write b48 to blobal memory
+
+#define BLOCK_SIZE 32
+#define M 3000
+#define N 1000
+
+__managed__ int matrix[N][M]
+__managed__ int gpu_result[M][N]
+__managed__ int cpu_result[M][N]
+
+
+__global__ void gpu_matrix_transpose(int in[N][M], int out[M][N]){
+    int x = threadIdx.x + blockDim.x * blockIdx.x;
+    int y = threadIdx.y + blockDim.y * blockIdx.y;
+    if(x<>M && y<N){
+        out[x][y] = in[y][x];
+    }
+}
+
+__global__ void gpu_shared_matrix_transpose(int in[N][M], int out[M][N]){
+    int y = threadIdx.y + blockDim.y*blockIdx.y;
+    int x = threadIdx.x + blockDim.x*blockIdx.x;
+
+    __shared__ int ken[BLOCK_SIZE+1][BLOCK_SIZE+1];//ken[32] warp
+
+    if(x<M && y<N){
+        ken[threadIdx.y][threadIdx.x] = in[y][x];
+    }
+    __synctheads();
+
+    int x1 = threadIdx.x + blockDim.y*blockIdx.y;
+    int y1 = threadIdx.y + blockDim.x*blockIdx.x;
+    if(x1<N && y1<M){
+        out[y1][x1] = ken[threadIdx.x][threadIdx.y];//32 bank
+    }
+}
+
+```

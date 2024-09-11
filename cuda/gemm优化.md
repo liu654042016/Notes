@@ -44,8 +44,8 @@ void cpu_gemm(float* A, float* B, float* C, int m, int n, int k){
 //每个线程处理一行数据
 __global__ void matrixMulGlobalKernel(float* pfMatrixA, float* pfMatrixB, float* pfMatrixC, int m, int n, int k){
     //row 代表行
-    int nRow  = blockIdx.y*blockDim.y + threadIdx.y;
-    int nCol  = blockIdx.x*blockDim.x + threadIdx.x;
+    int nRow  = blockIdx.y*blockDim.y + threadIdx.y;// 行
+    int nCol  = blockIdx.x*blockDim.x + threadIdx.x;// 列
     float fCVal = 0.0f;
 
     for(int i=0; i<k; i++){
@@ -54,7 +54,6 @@ __global__ void matrixMulGlobalKernel(float* pfMatrixA, float* pfMatrixB, float*
     pfMatrixC[nRow*n+nCol] = fCVal;
 
 }
-
 ```
 ## gpu 实现共享内存版
 ![alt text](image-1.png)
