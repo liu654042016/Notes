@@ -1,7 +1,9 @@
 ## [optim gemm](https://blog.csdn.net/kunhe0512/article/details/131369624)
+
 ### base
+
 ```cpp
-//a[][]*b[][]=c[][]
+ //a[][]*b[][]=c[][]
 //
 //
 //                  b00 b01 b02 b03
@@ -39,8 +41,8 @@
 //a30 a31   a32 a33     C30 C31   C32 C33
 //
 //cb_11 =  ab_1_0 * sb_0_1 + ab_1_1*sb_1_1
-                     
-                     
+                 
+                 
 
 
 __global__ void gpu_matrix_mult(int *a, int *b, int *c, const int size){
@@ -64,8 +66,8 @@ __global__ void gpu_matrix_mult(int *a, int *b, int *c, const int size){
 #define BLOCK_SIZE 1000
 // lanch kernel
 //a[M,N] b[N,K] c[M,K]
-unsigned int grid_x = (K+BLOCK_SIZE - 1)/BLOCK_SIZE
-unsigned int grid_y = (M+BLOCK_SIZE - 1)/BLOCK_SIZE
+unsigned int grid_x = (K+BLOCK_SIZE - 1)/BLOCK_SIZE// k 列 是 x 坐标
+unsigned int grid_y = (M+BLOCK_SIZE - 1)/BLOCK_SIZE// M 行 是 y 坐标
 
 dim3 dimGrid(grid_x, grid_y)
 dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE)
@@ -76,15 +78,18 @@ __global__ void gpu_matirx(int* a, int* b, int* c, int m, int n, int k){
     __shared__ int sub_a[BLOCK_SIZE][BLOCK_SIZE];
     __shared__ int sub_b[BLOCK_SIZE][BLOCK_SIZE];
 
-    int x = blockIdx.x * blockDim.X + threadIdx.x;
-    int y = blockIdy.y * blockDim.y + threadIdx.y;
+    int x = blockIdx.x * blockDim.X + threadIdx.x; //输出矩阵 c 列 0:k
+    int y = blockIdy.y * blockDim.y + threadIdx.y; //输出矩阵 c 行 0:m
 
     int tmp = 0;
     int idx;
-
+    //a[m,n]
+    //b[n,k]
+    //c[m,k]
     for(int step = 0; step<= n/BLOCK_SIZE; step++){
-        // load a 矩阵
-        int step_x = step*BLOCK_SIZE + threadIdx.x;
+        // load a 矩阵 a[m,n]
+        // 加载一行数据  a 矩阵 按 n 方向切分
+        int step_x = step*BLOCK_SIZE + threadIdx.x; 
         int step_y = y;
 
         idx = step_y*n + step_x;
@@ -94,11 +99,11 @@ __global__ void gpu_matirx(int* a, int* b, int* c, int m, int n, int k){
             sub_a[threadIdx.y][threadIdx.x] = a[idx];
         }
 
-        // load b 矩阵
+        // load b 矩阵 b[n,k]
+        // load 一列数据 沿 n 方向切分
         step_x = x;
         step_y = step*BLOCK_SIZE + threadIdx.y;
         idx = step_y*k + step_x;
-        idx = step*k + step_x;
 
         if(step_x>=k || step_y >=n){
             sub_b[threadIdx.y][threadIdx.x] = 0;
@@ -113,14 +118,18 @@ __global__ void gpu_matirx(int* a, int* b, int* c, int m, int n, int k){
         }
         __syncthreads();
     }
+    // c[m,k]
     if(x<k && y<m){
         c[y*k+x] = tmp;
     }
 }
 
 ```
+
 ### transpose
+
 [reference](https://blog.csdn.net/weixin_55035144/article/details/130742866)
+
 ```cpp
 //matrix transpose
 //
