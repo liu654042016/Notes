@@ -129,8 +129,15 @@ __global__ void gpu_matirx(int* a, int* b, int* c, int m, int n, int k){
 ### transpose
 
 [reference](https://blog.csdn.net/weixin_55035144/article/details/130742866)
+[reference_2](https://juejin.cn/post/7033312408005246984)
 
 ```cpp
+
+
+
+
+
+
 //matrix transpose
 //
 //in    b00 b01 b02 | b03 b04 b05 | b06 b07 b08
@@ -155,6 +162,9 @@ __global__ void gpu_matirx(int* a, int* b, int* c, int m, int n, int k){
 //      b07 b17 b27 | b37 b47 b57
 //      b08 b18 b28 | b38 b48 b58
 //
+//      
+//
+// B[i][j] = B[j]{i}
 //shared memory
 //t57 read b57 from global memroy to shared memroy
 //t57 read b48 from shared memory
@@ -169,6 +179,8 @@ __managed__ int gpu_result[M][N]
 __managed__ int cpu_result[M][N]
 
 
+
+// read 数据时合并访存了， 但是写的时候不连续所以没有合并访存
 __global__ void gpu_matrix_transpose(int in[N][M], int out[M][N]){
     int x = threadIdx.x + blockDim.x * blockIdx.x;
     int y = threadIdx.y + blockDim.y * blockIdx.y;
@@ -176,6 +188,12 @@ __global__ void gpu_matrix_transpose(int in[N][M], int out[M][N]){
         out[x][y] = in[y][x];
     }
 }
+
+//bank 
+//[0][1][2][3][4][5][6][7][8]...[27][28][29][30][31]
+//
+//
+//
 
 __global__ void gpu_shared_matrix_transpose(int in[N][M], int out[M][N]){
     int y = threadIdx.y + blockDim.y*blockIdx.y;
@@ -196,3 +214,57 @@ __global__ void gpu_shared_matrix_transpose(int in[N][M], int out[M][N]){
 }
 
 ```
+
+### [规约](https://blog.csdn.net/kunhe0512/article/details/131494479?spm=1001.2014.3001.5502)
+```cpp
+#define N 100000000
+#define BLOCK_SIZE 256
+#define GRID_SIZE 32
+
+__managed__ int source[N];
+__managed__ int gpu_result[1] = {0};
+
+//source[N] 1+2+3+4+.........N
+//cpu for loop
+//gpu: 
+//thread id step 0: tid0: source[0] + source[4]->source[0]
+//                  tid1: source[1] + source[5]->source[1]
+//                  tid2: source[3] + source[6]->source[3]
+//                  tid3: source[4] + source[7]->source[4] 
+//          step 1: tid0: source[0] + source[2]->source[0]
+//                  tid1: source[1] + source[3]->source[1]
+//          step 2: tid0: source[0] + source[1]->source[0]
+//
+//thread id: blockDim.x * blockIdx.x + threadIdx.x + step*blockDim.x*GridDim.x
+//
+//
+
+__global__ void sum_gpu(int *in, int count, int *out){
+    //grid_loop
+    int shared_tmp = 0;
+    for(int idx = blockDim.x*blockIdx.x+threadIdx.x; idx<count; idx+=blockDim.x*gridDim.x){
+        shared_tmp += in[idx];
+    }
+    ken[threadIdx.x] = shared_tmp;
+    __syncthreads();
+    int tmp = 0;
+    for(int tortal_threads = BLOCK_SIZE/2; total_threads>=1;toral_threads/=2){
+        if(threadIdx.x<total_threads){
+            tmp = ken[threadIdx.x] + ken[threadIdx.x+total_threads];
+        }
+        __syncthreads();
+        if(threadIdx.x<total_threads){
+            ken[threadIdx.x] = tmp;
+        }
+    }
+    //block_sum->share memory[0]
+    if(blockIdx.x*blockDim.x<count){
+        if(threadIdx.x==0){
+            atomicAdd(out, ken[0]);
+        }
+    }
+}
+
+```
+
+### [topk/规约/ 2_pass 核函数](https://blog.csdn.net/kunhe0512/article/details/131581665?spm=1001.2014.3001.5502)
