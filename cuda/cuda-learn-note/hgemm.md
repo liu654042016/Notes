@@ -2,7 +2,7 @@
  * @Author: liu kang
  * @Date: 2024-11-28 23:07:02
  * @LastEditors: faaaade
- * @LastEditTime: 2024-12-02 00:07:35
+ * @LastEditTime: 2024-12-03 23:38:37
  * @FilePath: \Notes\cuda\cuda-learn-note\hgemm.md
  * @Description: 
  * 
@@ -110,9 +110,9 @@ __global__ void HGEMMAligned_V1(
     }
 
     int load_a_smem_m = (tid>>2) << 1; //(tid/4)*2
-    int load_a_smem_k = (tid & 3)<<3; 
-    int load_b_smem_k = (tid>>5)<<2;
-    int load_b_smem_n = (tid&31)<<3;
+    int load_a_smem_k = (tid & 3)<<3; //(tid%4)*8
+    int load_b_smem_k = (tid>>5)<<2; //(tid/32)*4
+    int load_b_smem_n = (tid&31)<<3; //(tid%32)*8
 
     int load_a_gmem_m = by*BM + load_a_smem_m; 
     int load_b_gmem_b = bx*BN + load_b_smem_n;
@@ -120,7 +120,31 @@ __global__ void HGEMMAligned_V1(
     
 
 
-    int load_a_gmem_addr = OFFSET(load_a_gmem_m, load_a_smem)
+    int load_a_gmem_addr = OFFSET(load_a_gmem_m, load_a_smem_k, K);
+    int load_b_gmem_addr = OFFSET(load_b_gmem_k, load_b_gmem_n, N);
+
+    int comp_c_frag_m = wid & 1; //0,1
+    int comp_c_frag_n = wid >> 1;//wid/2
+
+    for(int bk =0; bk < K/BK; bk++){
+        FLOAT4(s_a[load_a_smem_m  ][load_a_smem_k])=FLOAT4(a[load_a_gmem_addr  ]);
+        FLOAT4(s_a[load_a_smem_m+1][load_a_smem_k])=FLOAT4(a[load_a_gmem_addr+K]);
+        FLOAT4(s_b[load_b_smem_k  ][load_b_smem_n])=FLOAT4(b[load_b_gmem_addr  ]);
+        FLOAT4(s_b[load_b_smem_k+1][load_b_smem_n])=FLOAT4(b[load_b_gmem_addr+N]);
+        FLOAT4(s_b[load_b_smem_k+2][load_b_smem_n])=FLOAT4(b[load_b_gmem_addr+2*N]);
+        FLOAT4(s_b[load_b_smem_k+3][load_b_smem_n])=FLOAT4(b[load_b_gmem_addr+3*N]);
+
+        load_a_gmem_addr += BK;
+        load_b_gmem_addr ++BK*N;
+
+        __syncthreads();
+
+        wmma::load_matrix_sync(frag_a[0][0], &s_a[comp_c_frag_m*64][0],BK+APAD);
+        wmma::load_matrix_sync(frag_a[0][1], &s_a[comp_c_frag_m*64 + 16][0],BK+APAD);
+        wmma::load_matrix_sync(frag)
+
+
+    }
 
 
 
