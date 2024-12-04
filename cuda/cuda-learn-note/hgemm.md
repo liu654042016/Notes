@@ -2,7 +2,7 @@
  * @Author: liu kang
  * @Date: 2024-11-28 23:07:02
  * @LastEditors: faaaade
- * @LastEditTime: 2024-12-03 23:38:37
+ * @LastEditTime: 2024-12-04 23:40:26
  * @FilePath: \Notes\cuda\cuda-learn-note\hgemm.md
  * @Description: 
  * 
@@ -114,15 +114,38 @@ __global__ void HGEMMAligned_V1(
     int load_b_smem_k = (tid>>5)<<2; //(tid/32)*4
     int load_b_smem_n = (tid&31)<<3; //(tid%32)*8
 
+    //为什么两个线程相差 8 因为 bk =8 
+
+    //tid = 0；load_a_smem_m = 0, load_a_smem_k = 0,  load_b_smem_k = 0, load_b_smem_n = 0  
+    //tid = 1; load_a_smem_m = 0, load_a_smem_k = 8,  load_b_smem_k = 0, load_b_smem_n = 8
+    //tid = 2; load_a_smem_m = 0, load_a_smem_k = 16, load_b_smem_k = 0; load_b_smem-n = 16
+    //tid = 3; load_a_smem_m = 0, load_a_smem_k = 24, load_b_smem_k = 0, load_b_smem_n = 24
+    //tid = 4; load_a_smem_m = 2, load_a_smem_k = 0,  load_b_smem_k = 0, load_b_smem_n = 32
+    //tid = 5; load_a_smem_m = 2, load_a_smem_k = 8,  load_b_smem_k = 0, load_b_smem_n = 40
+    //tid = 6; load_a_smem_m = 2, load_a_smem_k = 16, load_b_smem_k = 0, load_b_smem_n = 48
+    //...
+    //...
+    //tid=254;load_a_smem_m=  126,load_a_smem_k = 16, load_b_smem_k =28, load_b_smem_n = 240
+    //tid=255;load_a_smem_m = 126,load_a_smem_k = 24, load_b_smem_k =28, load_b_smem_n = 248
+
+
+
     int load_a_gmem_m = by*BM + load_a_smem_m; 
     int load_b_gmem_b = bx*BN + load_b_smem_n;
 
     
 
-
     int load_a_gmem_addr = OFFSET(load_a_gmem_m, load_a_smem_k, K);
     int load_b_gmem_addr = OFFSET(load_b_gmem_k, load_b_gmem_n, N);
 
+    //wid = tid>>5 
+    //tid = 0;  wid=0; comp_c_frag_m=0; comp_c_frag_n=0
+    //tid = 32; wid=1; comp_c_frag_m=1; comp_c_frag_n=0
+    //tid = 64; wid=2; comp_c_frag_m=0, comp_c_frag_n=1
+    //tid =128; wid=4; comp_c_frag_m=0, comp_c_frag_n=2
+    //
+
+    //tid =255; wid=7; comp_c_frag_m=1, comp_c_frag_n=3
     int comp_c_frag_m = wid & 1; //0,1
     int comp_c_frag_n = wid >> 1;//wid/2
 
@@ -135,7 +158,7 @@ __global__ void HGEMMAligned_V1(
         FLOAT4(s_b[load_b_smem_k+3][load_b_smem_n])=FLOAT4(b[load_b_gmem_addr+3*N]);
 
         load_a_gmem_addr += BK;
-        load_b_gmem_addr ++BK*N;
+        load_b_gmem_addr +=BK*N;
 
         __syncthreads();
 
