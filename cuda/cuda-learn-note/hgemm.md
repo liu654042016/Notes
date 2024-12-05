@@ -2,7 +2,7 @@
  * @Author: liu kang
  * @Date: 2024-11-28 23:07:02
  * @LastEditors: faaaade
- * @LastEditTime: 2024-12-04 23:40:26
+ * @LastEditTime: 2024-12-05 23:58:21
  * @FilePath: \Notes\cuda\cuda-learn-note\hgemm.md
  * @Description: 
  * 
@@ -123,19 +123,31 @@ __global__ void HGEMMAligned_V1(
     //tid = 4; load_a_smem_m = 2, load_a_smem_k = 0,  load_b_smem_k = 0, load_b_smem_n = 32
     //tid = 5; load_a_smem_m = 2, load_a_smem_k = 8,  load_b_smem_k = 0, load_b_smem_n = 40
     //tid = 6; load_a_smem_m = 2, load_a_smem_k = 16, load_b_smem_k = 0, load_b_smem_n = 48
+    //tid = 7; load_a_smem_m = 2, load_a_smem_k = 24,
+    //tid = 8; load_a_smem_m = 4, load_a_smem_k = 0,
     //...
     //...
+    //tid = 30;load_a_smem_m = 14, load_a_smem_k = 16,
+    //tid = 31;load_a_smem_m = 14, load_a_smem_k = 24,
+    //
     //tid=254;load_a_smem_m=  126,load_a_smem_k = 16, load_b_smem_k =28, load_b_smem_n = 240
     //tid=255;load_a_smem_m = 126,load_a_smem_k = 24, load_b_smem_k =28, load_b_smem_n = 248
 
 
 
     int load_a_gmem_m = by*BM + load_a_smem_m; 
+    //by = 0
+    //tid =0; load_a_gmem_m=0
+    //tid =1; load_a_gmem_m=0
+    //tid =2; load_a_gmem_m=0
     int load_b_gmem_b = bx*BN + load_b_smem_n;
 
     
 
     int load_a_gmem_addr = OFFSET(load_a_gmem_m, load_a_smem_k, K);
+    //tid = 0; load_a_gmem_addr = 0
+    //tid = 1; load_a_gmem_addr = 8
+
     int load_b_gmem_addr = OFFSET(load_b_gmem_k, load_b_gmem_n, N);
 
     //wid = tid>>5 
@@ -143,8 +155,8 @@ __global__ void HGEMMAligned_V1(
     //tid = 32; wid=1; comp_c_frag_m=1; comp_c_frag_n=0
     //tid = 64; wid=2; comp_c_frag_m=0, comp_c_frag_n=1
     //tid =128; wid=4; comp_c_frag_m=0, comp_c_frag_n=2
-    //
-
+    //tid =160; wid=5; comp_c_frag_m=1, comp_c_frag_n=2;
+    //...
     //tid =255; wid=7; comp_c_frag_m=1, comp_c_frag_n=3
     int comp_c_frag_m = wid & 1; //0,1
     int comp_c_frag_n = wid >> 1;//wid/2
@@ -162,15 +174,48 @@ __global__ void HGEMMAligned_V1(
 
         __syncthreads();
 
-        wmma::load_matrix_sync(frag_a[0][0], &s_a[comp_c_frag_m*64][0],BK+APAD);
+        wmma::load_matrix_sync(frag_a[0][0], &s_a[comp_c_frag_m*64     ][0],BK+APAD);
         wmma::load_matrix_sync(frag_a[0][1], &s_a[comp_c_frag_m*64 + 16][0],BK+APAD);
-        wmma::load_matrix_sync(frag)
+        wmma::load_matrix_sync(frag_a[0][2], &s_a[comp_c_frag_m*64 + 32][0],BK+APAD);
+        wmma::load_matrix_sync(frag_a[0][3], &s_a[comp_c_frag_m*64 + 48][0],BK+APAD);
+        wmma::load_matrix_sync(frag_a[1][0], &s_a[comp_c_frag_m*64     ][16],BK+APAD);
+        wmma::load_matrix_sync(frag_a[1][1], &s_a[comp_c_frag_m*64 + 16][16],BK+APAD);
+        wmma::load_matrix_sync(frag_a[1][2], &s_a[comp_c_frag_m*64 + 32][16],BK+APAD);
+        wmma::load_matrix_sync(frag_a[1][3], &s_a[comp_c_frag_m*64 + 48][16],BK+APAD);
+
+        wmma::load_matrix_sync(frag_b[0][0], &s_b[ 0][comp_c_frag_n*64  ],BN+BPAD);
+        wmma::load_matrix_sync(frag_b[0][1], &s_b[ 0][comp_c_frag_n*64 + 16],BN+BPAD);
+        wmma::load_matrix_sync(frag_b[0][2], &s_b[ 0][comp_c_frag_n * 64 + 32], BN + BPAD);
+        wmma::load_matrix_sync(frag_b[0][3], &s_b[ 0][comp_c_frag_n * 64 + 48], BN + BPAD);
+        wmma::load_matrix_sync(frag_b[1][0], &s_b[16][comp_c_frag_n * 64     ], BN + BPAD);
+        wmma::load_matrix_sync(frag_b[1][1], &s_b[16][comp_c_frag_n * 64 + 16], BN + BPAD);
+        wmma::load_matrix_sync(frag_b[1][2], &s_b[16][comp_c_frag_n * 64 + 32], BN + BPAD);
+        wmma::load_matrix_sync(frag_b[1][3], &s_b[16][comp_c_frag_n * 64 + 48], BN + BPAD);
+
+        #pragma unroll
+        for(int i=0; i<4; i++){
+            #pragma unroll
+            for(int j=0; j<4; j++){
+                wmma::mma_sync(frag_c[i][j], frag_a[0][i], frag_b[0][j], frag_c[i][j]);
+                wmma::mma_sync(frag_c[i][j], frag_a[1][i], frag_b[1][j], frag_c[i][j]);
+            }
+        }
+
+        __sycthreads();
 
 
     }
+    int store_c_gmem_m = by*BM + comp_c_frag_m * 64;
+    int store_c_gmem_n = bx*BN + comp_c_frag_n * 64;
+    int sotre_c_gmem_addr = OFFSET(store_c_gmem_m, store_c_gmem_n, N);
 
-
-
+    #pragma unroll
+    for(int i=0; j<4; j++){
+        #pragme unroll
+        for(int j=0; j<4 ; j++){
+            wmma::store_matrix_sync(&c[store_c_gmem_addr + i*16*N + j*16], frag_c[i][j],N, wmma::mem_row_major);
+        }
+    }
 
 }
 
